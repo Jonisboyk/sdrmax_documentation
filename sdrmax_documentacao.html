@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SdrMax · Documentação Técnica</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0b0d;--surface:#111114;--surface-2:#17171b;
+  --border:#222228;--border-hi:#2e2e36;
+  --accent:#22c55e;--accent-2:#4ade80;--accent-dim:rgba(34,197,94,.12);
+  --text:#dddde4;--text-2:#8888a0;--text-3:#444458;
+  --color-border-secondary:rgba(255,255,255,.14);
+  --color-border-primary:rgba(255,255,255,.22);
+  --color-border-tertiary:rgba(255,255,255,.07);
+  --color-text-tertiary:#6b7280;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* HEADER */
+.site-header{display:flex;align-items:center;gap:10px;padding:0 28px;height:48px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.05em}
+.sep{color:var(--text-3);font-family:'IBM Plex Mono',monospace}
+.hdr-title{font-size:12px;color:var(--text-2);font-weight:300}
+.hdr-version{margin-left:auto;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:2px 8px}
+
+/* TABS */
+.tabs{display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface)}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:11px 16px;font-size:11px;font-weight:500;color:var(--text-2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.03em;font-family:'IBM Plex Mono',monospace;transition:color .15s,border-color .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5}
+
+/* PANELS */
+.panel{display:none}.panel.active{display:block}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface-2);border:1px solid var(--border-hi);border-radius:8px;padding:10px 18px;font-size:12px;color:var(--text-2);font-family:'IBM Plex Mono',monospace;max-width:480px;z-index:999;transition:transform .3s ease;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ─── TAB 1: AUTOMAÇÃO ─── */
+.svg-wrap{padding:24px 28px;overflow-x:auto}
+.svg-wrap svg{display:block;max-width:100%}
+
+/* ─── TAB 2: BANCO ─── */
+.db-page{padding:28px}
+.page-head{margin-bottom:24px}
+.page-head h2{font-size:15px;font-weight:500;margin-bottom:3px}
+.page-head p{font-size:11px;color:var(--text-2);font-family:'IBM Plex Mono',monospace}
+.db-layout{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:start}
+.schema-col{display:flex;flex-direction:column;gap:16px}
+.schema-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.schema-tag::after{content:'';flex:1;height:1px;background:var(--border)}
+.db-table{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.db-th{background:var(--surface-2);padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.tbadge{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:400}
+.ba{background:rgba(59,130,246,.12);color:#93c5fd}
+.bd{background:rgba(34,197,94,.1);color:#86efac}
+.bv{background:rgba(168,85,247,.12);color:#d8b4fe}
+.db-field{display:flex;align-items:center;gap:8px;padding:5px 14px;border-bottom:1px solid var(--border);font-size:11px;font-family:'IBM Plex Mono',monospace}
+.db-field:last-child{border-bottom:none}
+.fn{color:var(--text);flex:1}
+.ft{color:var(--text-3);font-size:10px}
+.pk{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(251,191,36,.1);color:#fbbf24}
+.fk{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(96,165,250,.1);color:#60a5fa}
+
+.db-connector-col{display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:80px;gap:4px}
+.conn-line{flex:1;width:1px;background:var(--border-hi);min-height:20px}
+.conn-badge{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;white-space:nowrap;writing-mode:initial}
+
+/* ─── TAB 3: DASHBOARD ─── */
+.dash-page{padding:28px}
+.dash-mockup{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);margin-top:20px}
+.dash-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.dash-bar-left{display:flex;align-items:center;gap:10px}
+.dash-logo-s{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);font-weight:500}
+.client-sel{font-size:11px;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px}
+.dash-period{font-size:10px;color:var(--text-3);font-family:'IBM Plex Mono',monospace}
+.dash-body{display:grid;grid-template-columns:160px 1fr}
+.dash-side{border-right:1px solid var(--border);padding:14px 0;min-height:400px}
+.side-label{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding:0 12px;margin-bottom:5px;font-family:'IBM Plex Mono',monospace}
+.side-item{padding:6px 12px;font-size:11px;color:var(--text-2);cursor:default;display:flex;align-items:center;gap:7px;transition:background .1s}
+.side-item.active{color:var(--accent);background:var(--accent-dim)}
+.sdot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5}
+.dash-main{padding:16px}
+.dsec{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+.metrics-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.mc{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:11px 13px}
+.ml{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.mv{font-size:18px;font-weight:500;color:var(--text);font-family:'IBM Plex Mono',monospace}
+.ms{font-size:9px;margin-top:2px}
+.up{color:var(--accent)}.down{color:#f87171}
+.chart-box{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:16px}
+.ctitle{font-size:9px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.mini-tbl{width:100%;border-collapse:collapse}
+.mini-tbl th{font-size:9px;color:var(--text-3);text-align:left;padding:4px 8px;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-weight:400}
+.mini-tbl td{font-size:11px;color:var(--text-2);padding:5px 8px;border-bottom:1px solid var(--border-hi);font-family:'IBM Plex Mono',monospace}
+.mini-tbl tr:last-child td{border-bottom:none}
+.sb{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:500}
+.sa{background:rgba(34,197,94,.1);color:#86efac}
+.sq{background:rgba(251,191,36,.08);color:#fcd34d}
+.sc{background:rgba(156,163,175,.08);color:#9ca3af}
+
+/* ─── TAB 4: ONBOARDING ─── */
+.ob-page{padding:28px}
+.ob-steps{margin-top:24px}
+.ob-step{display:grid;grid-template-columns:32px 1fr;gap:14px;margin-bottom:0}
+.step-spine{display:flex;flex-direction:column;align-items:center}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;flex-shrink:0;border:1px solid var(--border-hi);color:var(--text-2);background:var(--surface-2);cursor:pointer;transition:all .2s;user-select:none}
+.ob-step.done .step-num{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.ob-step.active .step-num{background:var(--accent);border-color:var(--accent);color:#0b0b0d;box-shadow:0 0 0 4px var(--accent-dim)}
+.step-line{flex:1;width:1px;background:var(--border);margin:4px 0;min-height:24px}
+.ob-step.done .step-line{background:var(--accent);opacity:.3}
+.step-body{padding-bottom:20px}
+.step-header{cursor:pointer;padding:4px 0 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.step-title{font-size:13px;font-weight:500;color:var(--text)}
+.stag{font-size:9px;padding:2px 7px;border-radius:4px;font-family:'IBM Plex Mono',monospace}
+.tc{background:rgba(59,130,246,.1);color:#93c5fd}
+.tm{background:rgba(251,191,36,.08);color:#fcd34d}
+.ta{background:rgba(34,197,94,.08);color:#86efac}
+.tp{background:rgba(168,85,247,.1);color:#d8b4fe}
+.step-desc{font-size:12px;color:var(--text-2);line-height:1.7;margin-bottom:8px}
+.step-tasks{display:none}
+.step-tasks.open{display:block}
+.task-list{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:8px}
+.task-item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text-2);cursor:pointer;transition:background .1s}
+.task-item:last-child{border-bottom:none}
+.task-item:hover{background:var(--surface-2)}
+.task-item.done{color:var(--text-3)}
+.task-item.done .task-name{text-decoration:line-through}
+.tck{width:14px;height:14px;border:1px solid var(--border-hi);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s}
+.task-item.done .tck{background:var(--accent);border-color:var(--accent);color:#0b0b0d}
+.expand-btn{font-size:10px;color:var(--text-3);background:none;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;padding:0;transition:color .15s}
+.expand-btn:hover{color:var(--text-2)}
+.ob-progress{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:24px}
+.prog-bar-wrap{flex:1;height:4px;background:var(--border-hi);border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease;width:0%}
+.prog-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);white-space:nowrap}
+.prog-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);min-width:36px;text-align:right}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="logo">SdrMax</span>
+  <span class="sep">·</span>
+  <span class="hdr-title">documentação técnica</span>
+  <span class="hdr-version">v1.0</span>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('automacao',this)"><span class="tab-dot"></span>automação</button>
+  <button class="tab-btn" onclick="switchTab('banco',this)"><span class="tab-dot"></span>banco de dados</button>
+  <button class="tab-btn" onclick="switchTab('dashboard',this)"><span class="tab-dot"></span>dashboard</button>
+  <button class="tab-btn" onclick="switchTab('onboarding',this)"><span class="tab-dot"></span>onboarding</button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ══════════ TAB 1: AUTOMAÇÃO ══════════ -->
+<section id="tab-automacao" class="panel active">
+  <div class="svg-wrap">
+    <svg width="100%" viewBox="0 0 680 1486" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Arquitetura completa do SdrMax</title>
+  <desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Diagrama estrutural mostrando todas as camadas do SdrMax: entrada via YCloud, disjuntor humano, debounce, processamento de mídia, banco de dados, agente IA dual e motor de envio.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  <mask id="imagine-text-gaps-13sqg6" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="680" height="1486" fill="white"/><rect x="32" y="21.06159019470215" width="50.62526321411133" height="17.673011779785156" fill="black" rx="2"/><rect x="283.1239013671875" y="52.251956939697266" width="114.04356384277344" height="19.49608039855957" fill="black" rx="2"/><rect x="232.1136016845703" y="71.16349029541016" width="215.77281188964844" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="123.06159210205078" width="166.64967346191406" height="17.673011779785156" fill="black" rx="2"/><rect x="61.29149627685547" y="153.34043884277344" width="125.4169921875" height="20.40761375427246" fill="black" rx="2"/><rect x="33.42561340332031" y="173.16348266601562" width="180.61483764648438" height="17.673011779785156" fill="black" rx="2"/><rect x="286.8374328613281" y="154.25196838378906" width="94.32513427734375" height="19.49608039855957" fill="black" rx="2"/><rect x="237.00926208496094" y="173.16348266601562" width="194.0065460205078" height="17.673011779785156" fill="black" rx="2"/><rect x="492.3476867675781" y="154.25196838378906" width="115.30465698242188" height="19.49608039855957" fill="black" rx="2"/><rect x="480.1203308105469" y="173.16348266601562" width="139.79507446289062" height="17.673011779785156" fill="black" rx="2"/><rect x="214.6710205078125" y="150.06158447265625" width="26.687368392944336" height="17.673011779785156" fill="black" rx="2"/><rect x="350" y="197.0615997314453" width="45.952457427978516" height="17.673011779785156" fill="black" rx="2"/><rect x="423.9944763183594" y="150.06158447265625" width="28.011022567749023" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="241.0615997314453" width="159.7003936767578" height="17.673011779785156" fill="black" rx="2"/><rect x="103.85136413574219" y="272.251953125" width="108.2972412109375" height="19.49608039855957" fill="black" rx="2"/><rect x="67.67485046386719" y="291.1634826660156" width="181.0266571044922" height="17.673011779785156" fill="black" rx="2"/><rect x="399.74615478515625" y="272.251953125" width="128.7947998046875" height="19.49608039855957" fill="black" rx="2"/><rect x="290.0202331542969" y="291.1634826660156" width="348.339599609375" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="341.06158447265625" width="163.24696350097656" height="17.673011779785156" fill="black" rx="2"/><rect x="293.88427734375" y="374.251953125" width="92.6436538696289" height="19.49608039855957" fill="black" rx="2"/><rect x="80.73340606689453" y="440.251953125" width="58.533172607421875" height="19.49608039855957" fill="black" rx="2"/><rect x="42.783695220947266" y="459.16351318359375" width="134.43263244628906" height="17.673011779785156" fill="black" rx="2"/><rect x="319.279052734375" y="440.251953125" width="41.44190979003906" height="19.49608039855957" fill="black" rx="2"/><rect x="274.677978515625" y="459.16351318359375" width="130.7051544189453" height="17.673011779785156" fill="black" rx="2"/><rect x="531.3972778320312" y="439.3404235839844" width="77.20538330078125" height="20.40761375427246" fill="black" rx="2"/><rect x="502.6839599609375" y="459.16351318359375" width="134.93685913085938" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="533.0615844726562" width="127.33975982666016" height="17.673011779785156" fill="black" rx="2"/><rect x="46.62700271606445" y="564.251953125" width="134.7459716796875" height="19.49608039855957" fill="black" rx="2"/><rect x="40.438541412353516" y="583.1635131835938" width="147.14974975585938" height="17.673011779785156" fill="black" rx="2"/><rect x="228.7952117919922" y="564.251953125" width="118.70794677734375" height="19.49608039855957" fill="black" rx="2"/><rect x="215.83433532714844" y="583.1635131835938" width="144.33132934570312" height="17.673011779785156" fill="black" rx="2"/><rect x="415.22943115234375" y="564.251953125" width="79.83572387695312" height="19.49608039855957" fill="black" rx="2"/><rect x="424.22369384765625" y="583.1635131835938" width="61.55263137817383" height="17.673011779785156" fill="black" rx="2"/><rect x="553.2362060546875" y="564.251953125" width="93.52754211425781" height="19.49608039855957" fill="black" rx="2"/><rect x="547.3325805664062" y="583.1635131835938" width="105.33475494384766" height="17.673011779785156" fill="black" rx="2"/><rect x="558.0004272460938" y="609.0615844726562" width="84.61732482910156" height="17.673011779785156" fill="black" rx="2"/><rect x="273.6825866699219" y="519.0615844726562" width="152.63482666015625" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="665.0615844726562" width="235.7747039794922" height="17.673011779785156" fill="black" rx="2"/><rect x="69.1868896484375" y="696.251953125" width="117.626220703125" height="19.49608039855957" fill="black" rx="2"/><rect x="66.67304992675781" y="715.1635131835938" width="122.65390014648438" height="17.673011779785156" fill="black" rx="2"/><rect x="291.9637145996094" y="696.251953125" width="88.07257843017578" height="19.49608039855957" fill="black" rx="2"/><rect x="258.8992004394531" y="715.1635131835938" width="154.20152282714844" height="17.673011779785156" fill="black" rx="2"/><rect x="492.2501525878906" y="696.251953125" width="107.49964904785156" height="19.49608039855957" fill="black" rx="2"/><rect x="460.0260009765625" y="715.1635131835938" width="171.9479522705078" height="17.673011779785156" fill="black" rx="2"/><rect x="213.9963836669922" y="692.0615844726562" width="34.0072078704834" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="823.0615844726562" width="197.75022888183594" height="17.673011779785156" fill="black" rx="2"/><rect x="254.37496948242188" y="850.251953125" width="171.9187469482422" height="19.49608039855957" fill="black" rx="2"/><rect x="100.01948547363281" y="869.1634521484375" width="479.9610290527344" height="17.673011779785156" fill="black" rx="2"/><rect x="52" y="905.0615844726562" width="185.71119689941406" height="17.673011779785156" fill="black" rx="2"/><rect x="74.51586151123047" y="930.251953125" width="98.96825408935547" height="19.49608039855957" fill="black" rx="2"/><rect x="69.65909576416016" y="949.1635131835938" width="108.68179321289062" height="17.673011779785156" fill="black" rx="2"/><rect x="249.12477111816406" y="930.251953125" width="71.75041961669922" height="19.49608039855957" fill="black" rx="2"/><rect x="217.33502197265625" y="949.1635131835938" width="135.39554595947266" height="17.673011779785156" fill="black" rx="2"/><rect x="412.67724609375" y="930.251953125" width="68.64550399780273" height="19.49608039855957" fill="black" rx="2"/><rect x="374.6705627441406" y="949.1635131835938" width="145.03199768066406" height="17.673011779785156" fill="black" rx="2"/><rect x="563.6707153320312" y="930.251953125" width="40.94925308227539" height="19.49608039855957" fill="black" rx="2"/><rect x="538.3400268554688" y="949.1635131835938" width="91.31991577148438" height="17.673011779785156" fill="black" rx="2"/><rect x="253.99691772460938" y="1009.0615844726562" width="200.07118225097656" height="17.673011779785156" fill="black" rx="2"/><rect x="271.6656494140625" y="1047.0616455078125" width="137.28887939453125" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="1121.0615234375" width="149.31626892089844" height="17.673011779785156" fill="black" rx="2"/><rect x="217.05905151367188" y="1150.251953125" width="246.1763458251953" height="19.49608039855957" fill="black" rx="2"/><rect x="32" y="1203.0615234375" width="159.1010284423828" height="17.673011779785156" fill="black" rx="2"/><rect x="63.69740295410156" y="1234.251953125" width="124.60515594482422" height="19.49608039855957" fill="black" rx="2"/><rect x="54.339935302734375" y="1253.1634521484375" width="143.32008361816406" height="17.673011779785156" fill="black" rx="2"/><rect x="278.0540771484375" y="1234.251953125" width="95.89183044433594" height="19.49608039855957" fill="black" rx="2"/><rect x="249.3336639404297" y="1253.1634521484375" width="153.3327178955078" height="17.673011779785156" fill="black" rx="2"/><rect x="490.54052734375" y="1234.251953125" width="87.34402465820312" height="19.49608039855957" fill="black" rx="2"/><rect x="466.1142578125" y="1253.1634521484375" width="135.77144622802734" height="17.673011779785156" fill="black" rx="2"/><rect x="278.33892822265625" y="1322.251953125" width="95.3221206665039" height="19.49608039855957" fill="black" rx="2"/><rect x="461.7132568359375" y="1322.251953125" width="144.57345581054688" height="19.49608039855957" fill="black" rx="2"/><rect x="636.6688232421875" y="1282.0616455078125" width="34.66237258911133" height="17.673011779785156" fill="black" rx="2"/><rect x="32" y="1411.0616455078125" width="155.98187255859375" height="17.673011779785156" fill="black" rx="2"/><rect x="73.93514251708984" y="1429.251953125" width="140.425048828125" height="19.49608039855957" fill="black" rx="2"/><rect x="278.0748596191406" y="1429.251953125" width="124.14405059814453" height="19.49608039855957" fill="black" rx="2"/><rect x="448.1509094238281" y="1429.251953125" width="183.989013671875" height="19.49608039855957" fill="black" rx="2"/><rect x="36" y="1458.0616455078125" width="270.6220397949219" height="17.673011779785156" fill="black" rx="2"/></mask></defs>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 0 — ENTRADA
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="16" width="640" height="90" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="34" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Entrada</text>
+
+  <!-- YCloud webhook -->
+  <g onclick="showInfo('Me explica como funciona o webhook da YCloud no SdrMax')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="220" y="42" width="240" height="52" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="62" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">YCloud webhook</text>
+    <text x="340" y="80" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">POST /7f3f67e3... · WhatsApp inbound</text>
+  </g>
+
+  <!-- seta entrada → disjuntor -->
+  <line x1="340" y1="94" x2="340" y2="120" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 1 — DISJUNTOR HUMANO
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="118" width="640" height="108" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="136" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Disjuntor humano · Redis bd1</text>
+
+  <!-- Nó: é eco? -->
+  <g onclick="showInfo('O que é o eco do humano no handoff do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="144" width="168" height="52" rx="8" stroke-width="0.5" style="fill:rgb(99, 56, 6);stroke:rgb(239, 159, 39);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="124" y="164" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">É eco do humano?</text>
+    <text x="124" y="182" text-anchor="middle" dominant-baseline="central" style="fill:rgb(239, 159, 39);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">whatsapp.smb.message.echoes</text>
+  </g>
+
+  <!-- Nó: bloquear lead (sim) -->
+  <g onclick="showInfo('Como funciona o bloqueio de lead no disjuntor?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="250" y="144" width="168" height="52" rx="8" stroke-width="0.5" style="fill:rgb(121, 31, 31);stroke:rgb(240, 149, 149);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="334" y="164" text-anchor="middle" dominant-baseline="central" style="fill:rgb(247, 193, 193);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Bloquear lead</text>
+    <text x="334" y="182" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 149, 149);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Redis TTL 6h · disjuntor:waba:num</text>
+  </g>
+
+  <!-- Nó: verificar bloqueio (não) -->
+  <g onclick="showInfo('Como a verificação de bloqueio funciona no Redis?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="460" y="144" width="180" height="52" rx="8" stroke-width="0.5" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="550" y="164" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Verificar bloqueio</text>
+    <text x="550" y="182" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">GET disjuntor:waba:num</text>
+  </g>
+
+  <!-- setas disjuntor -->
+  <line x1="208" y1="170" x2="248" y2="170" marker-end="url(#arrow)" stroke="#BA7517" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="228" y="163" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">sim</text>
+  <line x1="340" y1="196" x2="340" y2="218" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="354" y="210" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">finaliza</text>
+
+  <line x1="418" y1="170" x2="458" y2="170" marker-end="url(#arrow)" stroke="var(--color-border-primary)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="438" y="163" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">não</text>
+  <line x1="550" y1="196" x2="550" y2="238" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- seta verificar → get client config -->
+  <line x1="340" y1="226" x2="340" y2="238" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 2 — CONFIG CLIENT + PARÂMETROS
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="236" width="640" height="100" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="254" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Config &amp; parâmetros globais</text>
+
+  <g onclick="showInfo('O que a query Get Client Config busca no banco?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="60" y="262" width="196" height="52" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="158" y="282" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Get client config</text>
+    <text x="158" y="300" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">clients · ia_api_key · ycloud_key</text>
+  </g>
+
+  <g onclick="showInfo('Quais são os parâmetros globais do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="294" y="262" width="340" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="464" y="282" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Parâmetros globais</text>
+    <text x="464" y="300" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">NameLead · NumberLead · WabaID · TypeMessage · AudioLink</text>
+  </g>
+
+  <line x1="256" y1="288" x2="292" y2="288" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="464" y1="314" x2="464" y2="338" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="158" y1="314" x2="158" y2="338" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="550" y1="226" x2="550" y2="262" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M550 288 L634 288 L634 336 L520 336" fill="none" stroke="var(--color-border-primary)" stroke-width="1" marker-end="url(#arrow)" mask="url(#imagine-text-gaps-13sqg6)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 3 — SWITCH DE MÍDIA
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="336" width="640" height="168" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="354" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Switch mestre · tipo de mídia</text>
+
+  <!-- Switch central -->
+  <g onclick="showInfo('Como o Switch Mestre de mídia funciona no SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="272" y="362" width="136" height="44" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="384" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Tipo de mídia</text>
+  </g>
+
+  <!-- 3 branches -->
+  <g onclick="showInfo('Como imagens são processadas no SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="430" width="140" height="52" rx="8" stroke-width="0.5" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="110" y="450" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Imagem</text>
+    <text x="110" y="468" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 153, 123);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Gemini Vision 2.5 Flash</text>
+  </g>
+
+  <g onclick="showInfo('Como o texto é processado no normalizador?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="270" y="430" width="140" height="52" rx="8" stroke-width="0.5" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="450" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Texto</text>
+    <text x="340" y="468" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Normalizador universal</text>
+  </g>
+
+  <g onclick="showInfo('Como áudios são transcritos no SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="500" y="430" width="140" height="52" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="570" y="450" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Áudio / voz</text>
+    <text x="570" y="468" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Whisper · transcrição pt</text>
+  </g>
+
+  <!-- setas switch -->
+  <path d="M272 384 L110 384 L110 428" fill="none" stroke="var(--color-border-primary)" stroke-width="1" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="340" y1="406" x2="340" y2="428" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M408 384 L570 384 L570 428" fill="none" stroke="var(--color-border-primary)" stroke-width="1" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- convergência das 3 para normalizador → debounce -->
+  <path d="M110 482 L110 516 L340 516" fill="none" stroke="var(--color-border-primary)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="340" y1="482" x2="340" y2="516" marker-end="url(#arrow)" stroke-dasharray="4 3" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M570 482 L570 516 L340 516" fill="none" stroke="var(--color-border-primary)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 4 — DEBOUNCE
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="528" width="640" height="164" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="546" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Debounce · Redis bd2</text>
+
+  <g onclick="showInfo('Como o debounce funciona no SdrMax com Redis?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="554" width="148" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="114" y="574" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Busca pacote antigo</text>
+    <text x="114" y="592" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">GET debounce:waba:num</text>
+  </g>
+
+  <g onclick="showInfo('Como as mensagens são juntadas no debounce?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="218" y="554" width="140" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="288" y="574" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Junta mensagens</text>
+    <text x="288" y="592" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">executionId + messages[]</text>
+  </g>
+
+  <g onclick="showInfo('Qual o propósito do wait de 3 segundos no debounce?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="390" y="554" width="130" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="455" y="574" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Aguarda 3s</text>
+    <text x="455" y="592" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Wait node</text>
+  </g>
+
+  <g onclick="showInfo('Como o SdrMax decide qual execução é a última?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="548" y="554" width="104" height="52" rx="8" stroke-width="0.5" style="fill:rgb(99, 56, 6);stroke:rgb(239, 159, 39);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="600" y="574" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Sou o último?</text>
+    <text x="600" y="592" text-anchor="middle" dominant-baseline="central" style="fill:rgb(239, 159, 39);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">executionId match</text>
+  </g>
+
+  <!-- setas debounce linha 1 -->
+  <line x1="188" y1="580" x2="216" y2="580" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="358" y1="580" x2="388" y2="580" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="520" y1="580" x2="546" y2="580" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- debounce: "não é último" termina -->
+  <text x="600" y="622" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">não → finaliza</text>
+  <line x1="600" y1="606" x2="600" y2="632" marker-end="url(#arrow)" stroke="#BA7517" mask="url(#imagine-text-gaps-13sqg6)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- "é o último" →  limpa redis e segue -->
+  <path d="M600 554 L600 536 L114 536 L114 554" fill="none" stroke="var(--color-border-primary)" stroke-width="0.8" stroke-dasharray="3 3" mask="url(#imagine-text-gaps-13sqg6)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:3px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="350" y="532" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">sim → limpa chave · segue</text>
+
+  <line x1="288" y1="640" x2="288" y2="662" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 5 — BANCO DE DADOS
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="660" width="640" height="160" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="678" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Banco de dados · PostgreSQL + PGVector</text>
+
+  <g onclick="showInfo('Como funciona a tabela contacts no banco do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="686" width="176" height="52" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="128" y="706" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Consultar contato</text>
+    <text x="128" y="724" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">prod rdc.contacts · jid</text>
+  </g>
+
+  <g onclick="showInfo('Quando um novo contato é criado no SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="248" y="686" width="176" height="52" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="336" y="706" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Criar contato</text>
+    <text x="336" y="724" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">INSERT contacts · client_id</text>
+  </g>
+
+  <g onclick="showInfo('Como o histórico de conversa é buscado no banco?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="456" y="686" width="180" height="52" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="546" y="706" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Buscar histórico</text>
+    <text x="546" y="724" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">messages · últimas 10 · DESC</text>
+  </g>
+
+  <!-- setas DB -->
+  <line x1="216" y1="712" x2="246" y2="712" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="231" y="705" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">novo</text>
+  <line x1="336" y1="738" x2="336" y2="756" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="128" y1="738" x2="128" y2="756" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- fusão para histórico -->
+  <path d="M128 756 L128 768 L546 768 L546 738" fill="none" stroke="var(--color-border-primary)" stroke-width="1" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="546" y1="782" x2="546" y2="800" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M546 800 L340 800 L340 820" fill="none" stroke="var(--color-border-primary)" stroke-width="1" marker-end="url(#arrow)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 6 — AGENTE IA (DUAL)
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="818" width="640" height="280" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="836" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Agente IA · Gemini 3 Flash Preview</text>
+
+  <!-- Parâmetros IA -->
+  <g onclick="showInfo('Quais parâmetros são passados para o agente IA?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="844" width="600" height="44" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="860" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Parâmetros para o prompt</text>
+    <text x="340" y="878" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">historico · mensagem_lead · numero_lead · LeadNome · ia_api_key · client_id · waba_id</text>
+  </g>
+
+  <!-- Loop agêntico -->
+  <rect x="40" y="902" width="600" height="176" rx="10" fill="none" stroke="var(--color-border-tertiary)" stroke-width="0.8" stroke-dasharray="3 3" style="fill:none;stroke:rgba(222, 220, 209, 0.15);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:3px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="56" y="918" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">Loop agêntico · máx 10 iterações</text>
+
+  <!-- Fluxo agêntico -->
+  <g onclick="showInfo('O que faz o nó Fluxo Agêntico no agente IA?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="60" y="924" width="128" height="44" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="124" y="940" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Fluxo agêntico</text>
+    <text x="124" y="958" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">roteador de estado</text>
+  </g>
+
+  <!-- Agent WR -->
+  <g onclick="showInfo('O que é o Agent WR no sistema de IA do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="220" y="924" width="130" height="44" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="285" y="940" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Agent WR</text>
+    <text x="285" y="958" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">atendente · SDR Rafael</text>
+  </g>
+
+  <!-- Agent OP -->
+  <g onclick="showInfo('O que é o Agent OP e quando ele é acionado?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="382" y="924" width="130" height="44" rx="8" stroke-width="0.5" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="447" y="940" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Agent OP</text>
+    <text x="447" y="958" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 153, 123);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">operacional · ferramentas</text>
+  </g>
+
+  <!-- Tools -->
+  <g onclick="showInfo('Quais ferramentas o Agent OP pode chamar?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="544" y="924" width="80" height="44" rx="8" stroke-width="0.5" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="584" y="940" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Tools</text>
+    <text x="584" y="958" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">catálogo · CRM</text>
+  </g>
+
+  <!-- setas agêntico -->
+  <line x1="188" y1="946" x2="218" y2="946" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="350" y1="946" x2="380" y2="946" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="512" y1="946" x2="542" y2="946" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- retorno loop -->
+  <path d="M584 968 L584 1010 L124 1010 L124 968" fill="none" stroke="var(--color-border-primary)" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arrow)" mask="url(#imagine-text-gaps-13sqg6)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="354" y="1022" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">retorno ao loop até mensagem_final</text>
+
+  <!-- Saída IA -->
+  <text x="340" y="1060" text-anchor="middle" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">mensagem_final gerada</text>
+  <line x1="340" y1="1098" x2="340" y2="1118" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 7 — SALVAR INTERAÇÃO
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="1116" width="640" height="76" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="1134" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Persistência · PostgreSQL</text>
+
+  <g onclick="showInfo('O que é salvo na tabela messages após cada interação?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="140" y="1142" width="400" height="36" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="1160" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Salvar interação completa · messages</text>
+  </g>
+
+  <line x1="340" y1="1178" x2="340" y2="1200" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 8 — MOTOR DE ENVIO
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="1198" width="640" height="188" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="1216" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Motor de envio · YCloud API</text>
+
+  <g onclick="showInfo('Como funciona o picotar mensagem para WhatsApp?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="40" y="1224" width="172" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="126" y="1244" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Picotar mensagem</text>
+    <text x="126" y="1262" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">split \n\n · delay dinâmico</text>
+  </g>
+
+  <g onclick="showInfo('Como o loop de envio de mensagens funciona?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="246" y="1224" width="160" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="326" y="1244" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Loop de envio</text>
+    <text x="326" y="1262" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">SplitInBatches · cada bloco</text>
+  </g>
+
+  <g onclick="showInfo('O que faz o nó marcar como lida e digitação?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="440" y="1224" width="188" height="52" rx="8" stroke-width="0.5" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="534" y="1244" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Typing + lida</text>
+    <text x="534" y="1262" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">typingIndicator · YCloud</text>
+  </g>
+
+  <!-- Wait + Send -->
+  <g onclick="showInfo('Por que existe o wait antes de cada mensagem?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="246" y="1310" width="160" height="44" rx="8" stroke-width="0.5" style="fill:rgb(99, 56, 6);stroke:rgb(239, 159, 39);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="326" y="1332" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Wait dinâmico</text>
+  </g>
+
+  <g onclick="showInfo('Como a mensagem final é enviada via YCloud?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="440" y="1310" width="188" height="44" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="534" y="1332" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Enviar via YCloud API</text>
+  </g>
+
+  <!-- setas motor -->
+  <line x1="212" y1="1250" x2="244" y2="1250" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="406" y1="1250" x2="438" y2="1250" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="534" y1="1276" x2="534" y2="1308" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="326" y1="1276" x2="326" y2="1308" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <line x1="406" y1="1332" x2="438" y2="1332" marker-end="url(#arrow)" style="fill:none;stroke:rgb(156, 154, 146);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- loop de retorno do envio -->
+  <path d="M628 1332 L648 1332 L648 1250 L534 1250" fill="none" stroke="var(--color-border-primary)" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arrow)" mask="url(#imagine-text-gaps-13sqg6)" style="fill:none;stroke:rgba(222, 220, 209, 0.4);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="654" y="1295" text-anchor="middle" style="fill:var(--color-text-tertiary);writing-mode:initial;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">próx.</text>
+
+  <!-- ══════════════════════════════════════════════════
+       CAMADA 9 — DASHBOARD (parcial)
+  ══════════════════════════════════════════════════ -->
+  <rect x="20" y="1406" width="640" height="58" rx="12" fill="none" stroke="var(--color-border-secondary)" stroke-width="0.8" stroke-dasharray="5 4" style="fill:none;stroke:rgba(222, 220, 209, 0.3);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-dasharray:5px, 4px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="36" y="1424" style="fill:var(--color-text-tertiary);font-weight:500;fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500;text-anchor:start;dominant-baseline:auto">Dashboard · em construção</text>
+
+  <g onclick="showInfo('O que precisa ter no dashboard do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="60" y="1424" width="168" height="30" rx="6" stroke-width="0.5" style="fill:rgb(39, 80, 10);stroke:rgb(151, 196, 89);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="144" y="1439" text-anchor="middle" dominant-baseline="central" style="fill:rgb(192, 221, 151);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Conversas · métricas</text>
+  </g>
+  <g onclick="showInfo('Como o controle de clientes deveria funcionar no dashboard?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="258" y="1424" width="164" height="30" rx="6" stroke-width="0.5" style="fill:rgb(39, 80, 10);stroke:rgb(151, 196, 89);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="340" y="1439" text-anchor="middle" dominant-baseline="central" style="fill:rgb(192, 221, 151);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Gestão de clientes</text>
+  </g>
+  <g onclick="showInfo('Que configurações deveriam ficar no dashboard do SdrMax?')" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+    <rect x="452" y="1424" width="176" height="30" rx="6" stroke-width="0.5" style="fill:rgb(39, 80, 10);stroke:rgb(151, 196, 89);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <text x="540" y="1439" text-anchor="middle" dominant-baseline="central" style="fill:rgb(192, 221, 151);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Config · prompts · bloqueios</text>
+  </g>
+
+  <!-- legenda -->
+  <rect x="20" y="1458" width="640" height="18" rx="4" fill="none" style="fill:none;stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <text x="40" y="1471" style="fill:var(--color-text-tertiary);fill:rgb(156, 154, 146);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">clique em qualquer bloco para aprofundar o tema</text>
+
+</svg>
+  </div>
+</section>
+
+<!-- ══════════ TAB 2: BANCO DE DADOS ══════════ -->
+<section id="tab-banco" class="panel">
+<div class="db-page">
+  <div class="page-head">
+    <h2>Banco de dados</h2>
+    <p>PostgreSQL + PGVector · dois schemas conectados por client_id</p>
+  </div>
+
+  <div class="db-layout">
+    <!-- SCHEMA AUTOMAÇÃO -->
+    <div class="schema-col">
+      <div class="schema-tag">schema · automação</div>
+
+      <div class="db-table">
+        <div class="db-th">contacts <span class="tbadge ba">automação</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">jid</span><span class="ft">text · único por client</span></div>
+        <div class="db-field"><span class="fn">name</span><span class="ft">text</span></div>
+        <div class="db-field"><span class="fn">phone</span><span class="ft">text</span></div>
+        <div class="db-field"><span class="fn">status</span><span class="ft">enum: active/blocked/human</span></div>
+        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+        <div class="db-field"><span class="fn">updated_at</span><span class="ft">timestamptz</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-th">messages <span class="tbadge ba">automação</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">contact_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">role</span><span class="ft">enum: user / assistant</span></div>
+        <div class="db-field"><span class="fn">content</span><span class="ft">text</span></div>
+        <div class="db-field"><span class="fn">type</span><span class="ft">enum: text/audio/image</span></div>
+        <div class="db-field"><span class="fn">tokens_in</span><span class="ft">int · consumo IA</span></div>
+        <div class="db-field"><span class="fn">tokens_out</span><span class="ft">int · consumo IA</span></div>
+        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-th">embeddings <span class="tbadge bv">PGVector</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">contact_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">content</span><span class="ft">text · chunk original</span></div>
+        <div class="db-field"><span class="fn">vector</span><span class="ft">vector(1536)</span></div>
+        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+      </div>
+    </div>
+
+    <!-- CONECTOR -->
+    <div class="db-connector-col">
+      <div class="conn-line"></div>
+      <div class="conn-badge">client_id</div>
+      <div class="conn-line"></div>
+    </div>
+
+    <!-- SCHEMA DASHBOARD -->
+    <div class="schema-col">
+      <div class="schema-tag">schema · dashboard</div>
+
+      <div class="db-table">
+        <div class="db-th">clients <span class="tbadge bd">dashboard</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">name</span><span class="ft">text · nome do cliente</span></div>
+        <div class="db-field"><span class="fn">waba_id</span><span class="ft">text · YCloud</span></div>
+        <div class="db-field"><span class="fn">ia_api_key</span><span class="ft">text · Gemini key</span></div>
+        <div class="db-field"><span class="fn">prompts</span><span class="ft">jsonb · system + exemplos</span></div>
+        <div class="db-field"><span class="fn">config</span><span class="ft">jsonb · debounce, limites</span></div>
+        <div class="db-field"><span class="fn">blocks</span><span class="ft">jsonb · palavras bloqueadas</span></div>
+        <div class="db-field"><span class="fn">status</span><span class="ft">enum: active/setup/paused</span></div>
+        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-th">ai_usage <span class="tbadge bd">dashboard</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">tokens_in</span><span class="ft">bigint</span></div>
+        <div class="db-field"><span class="fn">tokens_out</span><span class="ft">bigint</span></div>
+        <div class="db-field"><span class="fn">cost_usd</span><span class="ft">numeric(10,6)</span></div>
+        <div class="db-field"><span class="fn">model</span><span class="ft">text · ex: gemini-3-flash</span></div>
+        <div class="db-field"><span class="fn">date</span><span class="ft">date · agregado por dia</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-th">wa_usage <span class="tbadge bd">dashboard</span></div>
+        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
+        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
+        <div class="db-field"><span class="fn">messages_sent</span><span class="ft">int</span></div>
+        <div class="db-field"><span class="fn">conversations</span><span class="ft">int · janelas 24h</span></div>
+        <div class="db-field"><span class="fn">cost_usd</span><span class="ft">numeric(10,6)</span></div>
+        <div class="db-field"><span class="fn">date</span><span class="ft">date · agregado por dia</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════ TAB 3: DASHBOARD ══════════ -->
+<section id="tab-dashboard" class="panel">
+<div class="dash-page">
+  <div class="page-head">
+    <h2>Dashboard</h2>
+    <p>wireframe · custos IA + WhatsApp · métricas comerciais</p>
+  </div>
+
+  <div class="dash-mockup">
+    <div class="dash-bar">
+      <div class="dash-bar-left">
+        <span class="dash-logo-s">SdrMax</span>
+        <select class="client-sel"><option>Empresa Alpha Ltda</option><option>Beta Comercial</option><option>Gama SDR</option></select>
+      </div>
+      <span class="dash-period">últimos 7 dias · atualizado agora</span>
+    </div>
+
+    <div class="dash-body">
+      <div class="dash-side">
+        <div class="side-label" style="margin-bottom:10px">visão</div>
+        <div class="side-item active"><span class="sdot"></span>métricas de custo</div>
+        <div class="side-item"><span class="sdot"></span>métricas comerciais</div>
+        <div class="side-item"><span class="sdot"></span>conversas</div>
+        <div style="height:20px"></div>
+        <div class="side-label">gestão</div>
+        <div class="side-item"><span class="sdot"></span>clientes</div>
+        <div class="side-item"><span class="sdot"></span>prompts</div>
+        <div class="side-item"><span class="sdot"></span>bloqueios</div>
+      </div>
+
+      <div class="dash-main">
+        <div class="dsec">custos · período selecionado</div>
+        <div class="metrics-g">
+          <div class="mc">
+            <div class="ml">custo IA total</div>
+            <div class="mv">$2.84</div>
+            <div class="ms up">↑ +12% vs semana ant.</div>
+          </div>
+          <div class="mc">
+            <div class="ml">custo WhatsApp</div>
+            <div class="mv">$1.20</div>
+            <div class="ms up">↑ +5% vs semana ant.</div>
+          </div>
+          <div class="mc">
+            <div class="ml">custo total</div>
+            <div class="mv">$4.04</div>
+            <div class="ms" style="color:var(--text-3)">margem: ~92%</div>
+          </div>
+          <div class="mc">
+            <div class="ml">tokens consumidos</div>
+            <div class="mv">1.2M</div>
+            <div class="ms" style="color:var(--text-3)">in: 880k · out: 340k</div>
+          </div>
+          <div class="mc">
+            <div class="ml">msgs WA enviadas</div>
+            <div class="mv">1.847</div>
+            <div class="ms up">↑ +18% vs semana ant.</div>
+          </div>
+          <div class="mc">
+            <div class="ml">conversas ativas</div>
+            <div class="mv">38</div>
+            <div class="ms" style="color:var(--text-3)">3 em handoff humano</div>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <div class="ctitle">custo diário · IA (verde) + WhatsApp (cinza)</div>
+          <svg width="100%" height="80" viewBox="0 0 600 80">
+            <!-- grid lines -->
+            <line x1="0" y1="20" x2="600" y2="20" stroke="#222228" stroke-width="0.5"/>
+            <line x1="0" y1="40" x2="600" y2="40" stroke="#222228" stroke-width="0.5"/>
+            <line x1="0" y1="60" x2="600" y2="60" stroke="#222228" stroke-width="0.5"/>
+            <!-- IA line -->
+            <polyline points="0,55 86,48 171,52 257,38 343,42 428,30 514,35 600,28" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- WA line -->
+            <polyline points="0,65 86,62 171,64 257,58 343,60 428,54 514,57 600,52" fill="none" stroke="#444458" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- dots IA -->
+            <circle cx="600" cy="28" r="3" fill="#22c55e"/>
+            <!-- labels -->
+            <text x="2" y="76" fill="#444458" font-size="9" font-family="monospace">seg</text>
+            <text x="88" y="76" fill="#444458" font-size="9" font-family="monospace">ter</text>
+            <text x="173" y="76" fill="#444458" font-size="9" font-family="monospace">qua</text>
+            <text x="259" y="76" fill="#444458" font-size="9" font-family="monospace">qui</text>
+            <text x="345" y="76" fill="#444458" font-size="9" font-family="monospace">sex</text>
+            <text x="430" y="76" fill="#444458" font-size="9" font-family="monospace">sáb</text>
+            <text x="516" y="76" fill="#444458" font-size="9" font-family="monospace">dom</text>
+            <text x="584" y="76" fill="#444458" font-size="9" font-family="monospace">hoje</text>
+          </svg>
+        </div>
+
+        <div class="dsec">últimas conversas</div>
+        <table class="mini-tbl">
+          <tr><th>lead</th><th>início</th><th>msgs</th><th>tokens</th><th>status</th></tr>
+          <tr><td>+55 11 9xxxx-0001</td><td>hoje 14:32</td><td>12</td><td>3.420</td><td><span class="sb sa">ativo</span></td></tr>
+          <tr><td>+55 21 9xxxx-0847</td><td>hoje 11:08</td><td>7</td><td>1.980</td><td><span class="sb sq">fila</span></td></tr>
+          <tr><td>+55 47 9xxxx-2213</td><td>ontem 18:45</td><td>21</td><td>6.100</td><td><span class="sb sc">encerrado</span></td></tr>
+          <tr><td>+55 31 9xxxx-5560</td><td>ontem 09:20</td><td>5</td><td>1.240</td><td><span class="sb sc">encerrado</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════ TAB 4: ONBOARDING ══════════ -->
+<section id="tab-onboarding" class="panel">
+<div class="ob-page">
+  <div class="page-head">
+    <h2>Onboarding de cliente</h2>
+    <p>processo de ativação · SaaS personalizado · ~5 dias úteis</p>
+  </div>
+
+  <div class="ob-progress">
+    <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-2)">progresso</span>
+    <div class="prog-bar-wrap"><div class="prog-bar" id="progbar"></div></div>
+    <span class="prog-count" id="prog-count">0 / 8</span>
+  </div>
+
+  <div class="ob-steps">
+
+    <div class="ob-step" id="step-1">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-1')">01</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-1')">
+          <span class="step-title">Contrato fechado</span>
+          <span class="stag tm">manual</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Cliente assinou e pagou. Registrar dados iniciais para abertura do processo de ativação.</div>
+        <div class="step-tasks" id="tasks-1">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Receber pagamento / NF emitida</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Coletar razão social, CNPJ, contato responsável</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Agendar reunião de briefing (48h após pagamento)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-2">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-2')">02</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-2')">
+          <span class="step-title">Briefing SDR</span>
+          <span class="stag tm">manual</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Reunião de 1h para entender o negócio, ICP, produto, objeções, tom de voz e objetivo do SDR.</div>
+        <div class="step-tasks" id="tasks-2">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Produto / serviço: o que vende, ticket, diferenciais</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">ICP: cargo, segmento, dores principais</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Objeções mais comuns e como contornar</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Tom de voz: formal, casual, técnico?</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Objetivo final: agendar reunião? enviar proposta? qualificar?</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Horário de funcionamento e fuso</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-3">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-3')">03</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-3')">
+          <span class="step-title">Setup WABA + YCloud</span>
+          <span class="stag tc">config</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Configurar o número WhatsApp Business do cliente na YCloud e apontar o webhook para a instância do SdrMax.</div>
+        <div class="step-tasks" id="tasks-3">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Criar / verificar conta YCloud do cliente</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Registrar número WA Business (WABA ID)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Configurar webhook URL: POST /{client_id}</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Testar recebimento de webhook (mensagem de teste)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Configurar chave Gemini (ia_api_key)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-4">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-4')">04</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-4')">
+          <span class="step-title">Criar cliente no banco</span>
+          <span class="stag ta">automático</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Registrar o novo client_id no banco, vincular waba_id e ia_api_key. Isso habilita o roteamento correto de todos os webhooks.</div>
+        <div class="step-tasks" id="tasks-4">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">INSERT em clients: name, waba_id, ia_api_key, status='setup'</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Configurar config JSONB: debounce_ms, max_iter, fuso</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Definir blocks JSONB: palavras/frases que encerram IA</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Confirmar client_id gerado e documentar internamente</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-5">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-5')">05</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-5')">
+          <span class="step-title">Construção do prompt</span>
+          <span class="stag tp">colaborativo</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Escrever o system prompt personalizado com base no briefing. Essa é a etapa mais crítica — define 80% da qualidade do SDR.</div>
+        <div class="step-tasks" id="tasks-5">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Redigir system prompt: persona, missão, produto, ICP</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Adicionar seção de objeções e respostas</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Definir CTA final (ex: "agendar pelo link X")</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Escrever 3–5 exemplos de conversa (few-shot)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Salvar prompts JSONB no registro do cliente</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-6">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-6')">06</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-6')">
+          <span class="step-title">Teste interno</span>
+          <span class="stag tc">config</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Simular conversas reais antes de apresentar ao cliente. Cobrir cenários positivos, objeções e fluxos de erro.</div>
+        <div class="step-tasks" id="tasks-6">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Testar fluxo padrão (lead interessado → CTA)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Testar objeções (preço, concorrente, não tenho tempo)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Testar handoff humano (palavra de bloqueio)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Testar envio de áudio e imagem</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Verificar tokens e custo no dashboard</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-7">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-7')">07</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-7')">
+          <span class="step-title">Aprovação do cliente</span>
+          <span class="stag tp">colaborativo</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Demo ao vivo para o cliente validar o SDR. Coletar feedback e ajustar prompt se necessário.</div>
+        <div class="step-tasks" id="tasks-7">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Agendar call de aprovação (30 min)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Demonstrar 2–3 fluxos ao vivo</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Coletar ajustes de tom / resposta</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Iterar prompt (máx 2 rodadas)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Obter aprovação formal (mensagem / e-mail)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ob-step" id="step-8">
+      <div class="step-spine">
+        <div class="step-num" onclick="toggleStep('step-8')">08</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header" onclick="toggleTasks('tasks-8')">
+          <span class="step-title">Go live + monitoramento</span>
+          <span class="stag ta">automático</span>
+          <button class="expand-btn">↓ tarefas</button>
+        </div>
+        <div class="step-desc">Ativar o cliente em produção. Monitorar os primeiros 7 dias de perto para garantir qualidade e ajustar se necessário.</div>
+        <div class="step-tasks" id="tasks-8">
+          <div class="task-list">
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">UPDATE clients SET status = 'active'</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Comunicar go live ao cliente</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Monitorar dashboard: custo, tokens, conversas (D+1, D+3, D+7)</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Revisar qualidade das respostas nos primeiros 50 leads</span></div>
+            <div class="task-item" onclick="toggleTask(this)"><div class="tck">✓</div><span class="task-name">Agendar check-in semanal com o cliente (30 dias)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ob-steps -->
+</div>
+</section>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showInfo(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '→ ' + msg.replace("'","").replace(")","");
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function toggleStep(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('done');
+  updateProgress();
+}
+
+function toggleTasks(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  const btn = el.previousElementSibling.querySelector('.expand-btn');
+  if(btn) btn.textContent = el.classList.contains('open') ? '↑ fechar' : '↓ tarefas';
+}
+
+function toggleTask(item) {
+  item.classList.toggle('done');
+}
+
+function updateProgress() {
+  const total = document.querySelectorAll('.ob-step').length;
+  const done = document.querySelectorAll('.ob-step.done').length;
+  const pct = Math.round((done/total)*100);
+  document.getElementById('progbar').style.width = pct + '%';
+  document.getElementById('prog-count').textContent = done + ' / ' + total;
+}
+</script>
+</body>
+</html>
