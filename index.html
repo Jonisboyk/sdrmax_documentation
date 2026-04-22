@@ -155,6 +155,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
   <button class="tab-btn" onclick="switchTab('banco',this)"><span class="tab-dot"></span>banco de dados</button>
   <button class="tab-btn" onclick="switchTab('dashboard',this)"><span class="tab-dot"></span>dashboard</button>
   <button class="tab-btn" onclick="switchTab('onboarding',this)"><span class="tab-dot"></span>onboarding</button>
+  <button class="tab-btn" onclick="switchTab('agentia',this)"><span class="tab-dot"></span>agent IA</button>
 </nav>
 
 <div id="toast"></div>
@@ -519,98 +520,251 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 
 <!-- ══════════ TAB 2: BANCO DE DADOS ══════════ -->
 <section id="tab-banco" class="panel">
-<div class="db-page">
+<style>
+.db-page2{padding:28px}
+.db-schemas{display:flex;flex-direction:column;gap:32px}
+.db-schema-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.db-schema-header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.db-schema-name{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500}
+.db-schema-desc{font-size:11px;color:var(--text-3)}
+.db-tables-grid{display:grid;gap:0}
+.db-tables-row{display:grid;gap:1px;background:var(--border)}
+.db-tables-row.cols-1{grid-template-columns:1fr}
+.db-tables-row.cols-2{grid-template-columns:1fr 1fr}
+.db-tables-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.db-tables-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.dbt{background:var(--surface);overflow:hidden}
+.dbt-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.dbt-name{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500}
+.dbt-badges{display:flex;gap:4px}
+.db-f{display:flex;align-items:center;gap:6px;padding:4px 12px;border-bottom:1px solid var(--border);font-size:10px}
+.db-f:last-child{border-bottom:none}
+.db-fn{font-family:'IBM Plex Mono',monospace;color:var(--text);flex:1}
+.db-ft{color:var(--text-3);font-size:9px}
+.db-fc{display:flex;gap:3px;flex-shrink:0}
+.dpk{font-size:8px;padding:1px 4px;border-radius:2px;background:rgba(251,191,36,.1);color:#fbbf24;font-family:'IBM Plex Mono',monospace}
+.dfk{font-size:8px;padding:1px 4px;border-radius:2px;background:rgba(96,165,250,.1);color:#60a5fa;font-family:'IBM Plex Mono',monospace}
+.duq{font-size:8px;padding:1px 4px;border-radius:2px;background:rgba(168,85,247,.1);color:#d8b4fe;font-family:'IBM Plex Mono',monospace}
+.dnn{font-size:8px;padding:1px 4px;border-radius:2px;background:rgba(34,197,94,.08);color:#86efac;font-family:'IBM Plex Mono',monospace}
+.tbadge2{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:400}
+.tcore{background:rgba(251,191,36,.1);color:#fcd34d}
+.taut{background:rgba(59,130,246,.12);color:#93c5fd}
+.tdash{background:rgba(34,197,94,.1);color:#86efac}
+.tonb{background:rgba(168,85,247,.1);color:#d8b4fe}
+.tvec{background:rgba(244,114,182,.1);color:#f9a8d4}
+.db-note{font-size:10px;color:var(--text-3);font-family:'IBM Plex Mono',monospace;padding:6px 12px;border-top:1px solid var(--border);background:var(--surface-2)}
+.schema-connector{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3)}
+.schema-connector::before,.schema-connector::after{content:'';flex:1;height:1px;background:var(--border)}
+</style>
+
+<div class="db-page2">
   <div class="page-head">
     <h2>Banco de dados</h2>
-    <p>PostgreSQL + PGVector · dois schemas conectados por client_id</p>
+    <p>PostgreSQL + PGVector · 4 schemas interligados por client_id · sdrmax_db</p>
   </div>
 
-  <div class="db-layout">
-    <!-- SCHEMA AUTOMAÇÃO -->
-    <div class="schema-col">
-      <div class="schema-tag">schema · automação</div>
+  <div class="db-schemas">
 
-      <div class="db-table">
-        <div class="db-th">contacts <span class="tbadge ba">automação</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">jid</span><span class="ft">text · único por client</span></div>
-        <div class="db-field"><span class="fn">name</span><span class="ft">text</span></div>
-        <div class="db-field"><span class="fn">phone</span><span class="ft">text</span></div>
-        <div class="db-field"><span class="fn">status</span><span class="ft">enum: active/blocked/human</span></div>
-        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
-        <div class="db-field"><span class="fn">updated_at</span><span class="ft">timestamptz</span></div>
+    <!-- ── CORE ── -->
+    <div class="db-schema-block">
+      <div class="db-schema-header">
+        <span class="db-schema-name" style="color:#fcd34d">core</span>
+        <span class="db-schema-desc">centro de tudo · todos os schemas referenciam este</span>
       </div>
-
-      <div class="db-table">
-        <div class="db-th">messages <span class="tbadge ba">automação</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">contact_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">role</span><span class="ft">enum: user / assistant</span></div>
-        <div class="db-field"><span class="fn">content</span><span class="ft">text</span></div>
-        <div class="db-field"><span class="fn">type</span><span class="ft">enum: text/audio/image</span></div>
-        <div class="db-field"><span class="fn">tokens_in</span><span class="ft">int · consumo IA</span></div>
-        <div class="db-field"><span class="fn">tokens_out</span><span class="ft">int · consumo IA</span></div>
-        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+      <div class="db-tables-grid">
+        <div class="db-tables-row cols-1">
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">clients</span>
+              <div class="dbt-badges"><span class="tbadge2 tcore">core</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+              <div>
+                <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid · uuid_generate_v4()</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+                <div class="db-f"><span class="db-fn">name</span><span class="db-ft">varchar(255) · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+                <div class="db-f"><span class="db-fn">waba_id</span><span class="db-ft">varchar(100) · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span><span class="duq">UQ</span></div></div>
+                <div class="db-f"><span class="db-fn">ycloud_api_key</span><span class="db-ft">text · nullable</span></div>
+              </div>
+              <div>
+                <div class="db-f"><span class="db-fn">wr_prompt</span><span class="db-ft">text · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+                <div class="db-f"><span class="db-fn">op_prompt</span><span class="db-ft">text · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+                <div class="db-f"><span class="db-fn">config</span><span class="db-ft">jsonb · debounce_ms, max_iter, fuso</span></div>
+                <div class="db-f"><span class="db-fn">blocks</span><span class="db-ft">jsonb · palavras de handoff</span></div>
+              </div>
+              <div>
+                <div class="db-f"><span class="db-fn">status</span><span class="db-ft">varchar · setup/active/paused</span></div>
+                <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz · CURRENT_TIMESTAMP</span></div>
+                <div class="db-f"><span class="db-fn">updated_at</span><span class="db-ft">timestamptz · CURRENT_TIMESTAMP</span></div>
+              </div>
+            </div>
+            <div class="db-note">removido: ia_api_key · ia_provider — custos centralizados no Langfuse</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="db-table">
-        <div class="db-th">embeddings <span class="tbadge bv">PGVector</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">contact_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">content</span><span class="ft">text · chunk original</span></div>
-        <div class="db-field"><span class="fn">vector</span><span class="ft">vector(1536)</span></div>
-        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+    <div class="schema-connector">automacao · dashboard · onboarding referenciam core.clients via client_id</div>
+
+    <!-- ── AUTOMAÇÃO ── -->
+    <div class="db-schema-block">
+      <div class="db-schema-header">
+        <span class="db-schema-name" style="color:#93c5fd">automacao</span>
+        <span class="db-schema-desc">runtime da automação · leitura/escrita em tempo real</span>
+      </div>
+      <div class="db-tables-grid">
+        <div class="db-tables-row cols-3">
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">contacts</span>
+              <div class="dbt-badges"><span class="tbadge2 taut">automação</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">jid</span><span class="db-ft">varchar(50)</span><div class="db-fc"><span class="duq">UQ(client+jid)</span></div></div>
+            <div class="db-f"><span class="db-fn">name</span><span class="db-ft">varchar(255) · nullable</span></div>
+            <div class="db-f"><span class="db-fn">status</span><span class="db-ft">varchar · NEW/ACTIVE/HUMAN/BLOCKED</span></div>
+            <div class="db-f"><span class="db-fn">bant_budget</span><span class="db-ft">varchar(255) · nullable</span></div>
+            <div class="db-f"><span class="db-fn">bant_authority</span><span class="db-ft">varchar(255) · nullable</span></div>
+            <div class="db-f"><span class="db-fn">bant_need</span><span class="db-ft">text · nullable</span></div>
+            <div class="db-f"><span class="db-fn">bant_timeline</span><span class="db-ft">varchar(255) · nullable</span></div>
+            <div class="db-f"><span class="db-fn">lead_score</span><span class="db-ft">numeric · default 0</span></div>
+            <div class="db-f"><span class="db-fn">priority</span><span class="db-ft">varchar · LOW/MEDIUM/HIGH</span></div>
+            <div class="db-f"><span class="db-fn">qualified_at</span><span class="db-ft">timestamptz · nullable</span></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-f"><span class="db-fn">updated_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-note">⚠ bug corrigido: UNIQUE(client_id, jid) — antes era UNIQUE(client_id) sozinho</div>
+          </div>
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">messages</span>
+              <div class="dbt-badges"><span class="tbadge2 taut">automação</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">contact_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">role</span><span class="db-ft">varchar · lead/assistant/human</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+            <div class="db-f"><span class="db-fn">content</span><span class="db-ft">text · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+            <div class="db-f"><span class="db-fn">message_id</span><span class="db-ft">varchar(255) · YCloud msg id</span><div class="db-fc"><span class="duq">UQ</span></div></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-note">somente mensagem final WR + mensagem lead + mensagem vendedor humano. OP não registra.</div>
+          </div>
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">rag_documents</span>
+              <div class="dbt-badges"><span class="tbadge2 tvec">PGVector</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">content</span><span class="db-ft">text · chunk original · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+            <div class="db-f"><span class="db-fn">embedding</span><span class="db-ft">vector · PGVector</span></div>
+            <div class="db-f"><span class="db-fn">metadata</span><span class="db-ft">jsonb · source, tipo, etc.</span></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+          </div>
+
+        </div>
       </div>
     </div>
 
-    <!-- CONECTOR -->
-    <div class="db-connector-col">
-      <div class="conn-line"></div>
-      <div class="conn-badge">client_id</div>
-      <div class="conn-line"></div>
-    </div>
-
-    <!-- SCHEMA DASHBOARD -->
-    <div class="schema-col">
-      <div class="schema-tag">schema · dashboard</div>
-
-      <div class="db-table">
-        <div class="db-th">clients <span class="tbadge bd">dashboard</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">name</span><span class="ft">text · nome do cliente</span></div>
-        <div class="db-field"><span class="fn">waba_id</span><span class="ft">text · YCloud</span></div>
-        <div class="db-field"><span class="fn">ia_api_key</span><span class="ft">text · Gemini key</span></div>
-        <div class="db-field"><span class="fn">prompts</span><span class="ft">jsonb · system + exemplos</span></div>
-        <div class="db-field"><span class="fn">config</span><span class="ft">jsonb · debounce, limites</span></div>
-        <div class="db-field"><span class="fn">blocks</span><span class="ft">jsonb · palavras bloqueadas</span></div>
-        <div class="db-field"><span class="fn">status</span><span class="ft">enum: active/setup/paused</span></div>
-        <div class="db-field"><span class="fn">created_at</span><span class="ft">timestamptz</span></div>
+    <!-- ── DASHBOARD ── -->
+    <div class="db-schema-block">
+      <div class="db-schema-header">
+        <span class="db-schema-name" style="color:#86efac">dashboard</span>
+        <span class="db-schema-desc">métricas agregadas · leitura pelo dashboard · escrita via cron/langfuse</span>
       </div>
-
-      <div class="db-table">
-        <div class="db-th">ai_usage <span class="tbadge bd">dashboard</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">tokens_in</span><span class="ft">bigint</span></div>
-        <div class="db-field"><span class="fn">tokens_out</span><span class="ft">bigint</span></div>
-        <div class="db-field"><span class="fn">cost_usd</span><span class="ft">numeric(10,6)</span></div>
-        <div class="db-field"><span class="fn">model</span><span class="ft">text · ex: gemini-3-flash</span></div>
-        <div class="db-field"><span class="fn">date</span><span class="ft">date · agregado por dia</span></div>
-      </div>
-
-      <div class="db-table">
-        <div class="db-th">wa_usage <span class="tbadge bd">dashboard</span></div>
-        <div class="db-field"><span class="fn">id</span><span class="ft">uuid</span><span class="pk">PK</span></div>
-        <div class="db-field"><span class="fn">client_id</span><span class="ft">uuid</span><span class="fk">FK</span></div>
-        <div class="db-field"><span class="fn">messages_sent</span><span class="ft">int</span></div>
-        <div class="db-field"><span class="fn">conversations</span><span class="ft">int · janelas 24h</span></div>
-        <div class="db-field"><span class="fn">cost_usd</span><span class="ft">numeric(10,6)</span></div>
-        <div class="db-field"><span class="fn">date</span><span class="ft">date · agregado por dia</span></div>
+      <div class="db-tables-grid">
+        <div class="db-tables-row cols-1">
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">daily_metrics</span>
+              <div class="dbt-badges"><span class="tbadge2 tdash">dashboard</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+              <div>
+                <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+                <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span><span class="duq">UQ(client+date)</span></div></div>
+                <div class="db-f"><span class="db-fn">metric_date</span><span class="db-ft">date · NOT NULL</span><div class="db-fc"><span class="dnn">NN</span></div></div>
+              </div>
+              <div>
+                <div class="db-f"><span class="db-fn">total_leads</span><span class="db-ft">integer · default 0</span></div>
+                <div class="db-f"><span class="db-fn">leads_qualified</span><span class="db-ft">integer · default 0</span></div>
+                <div class="db-f"><span class="db-fn">total_messages</span><span class="db-ft">integer · default 0</span></div>
+                <div class="db-f"><span class="db-fn">total_handoffs</span><span class="db-ft">integer · default 0</span></div>
+              </div>
+              <div>
+                <div class="db-f"><span class="db-fn">ia_cost_usd</span><span class="db-ft">numeric(10,6) · via Langfuse sync</span></div>
+                <div class="db-f"><span class="db-fn">wa_cost_usd</span><span class="db-ft">numeric(10,6) · via YCloud</span></div>
+                <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+              </div>
+            </div>
+            <div class="db-note">ia_cost_usd atualizado via webhook/cron do Langfuse · wa_cost_usd via YCloud API · detalhe de tokens fica no Langfuse</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- ── ONBOARDING ── -->
+    <div class="db-schema-block">
+      <div class="db-schema-header">
+        <span class="db-schema-name" style="color:#d8b4fe">onboarding</span>
+        <span class="db-schema-desc">pipeline de análise + rastreamento de ativação · uso pontual por cliente</span>
+      </div>
+      <div class="db-tables-grid">
+        <div class="db-tables-row cols-3">
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">history_buffer</span>
+              <div class="dbt-badges"><span class="tbadge2 tonb">onboarding</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">remote_chat_id</span><span class="db-ft">varchar(100) · id do lead</span></div>
+            <div class="db-f"><span class="db-fn">message_content</span><span class="db-ft">text</span></div>
+            <div class="db-f"><span class="db-fn">direction</span><span class="db-ft">varchar · inbound/outbound</span></div>
+            <div class="db-f"><span class="db-fn">original_id</span><span class="db-ft">varchar(255)</span><div class="db-fc"><span class="duq">UQ</span></div></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-note">dump bruto dos 6 meses · alimenta o pipeline de análise da LLM 1</div>
+          </div>
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">history_analysis</span>
+              <div class="dbt-badges"><span class="tbadge2 tonb">onboarding</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span></div></div>
+            <div class="db-f"><span class="db-fn">batch_index</span><span class="db-ft">integer · nº do batch</span></div>
+            <div class="db-f"><span class="db-fn">atendimento</span><span class="db-ft">jsonb · schema LLM 1</span></div>
+            <div class="db-f"><span class="db-fn">qualificacao</span><span class="db-ft">jsonb · schema LLM 1</span></div>
+            <div class="db-f"><span class="db-fn">conversao</span><span class="db-ft">jsonb · schema LLM 1</span></div>
+            <div class="db-f"><span class="db-fn">linguagem</span><span class="db-ft">jsonb · schema LLM 1</span></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-note">resumos gerados pela LLM 1 por batch · lidos pela LLM 2 para montar o prompt</div>
+          </div>
+
+          <div class="dbt">
+            <div class="dbt-head">
+              <span class="dbt-name">client_setup</span>
+              <div class="dbt-badges"><span class="tbadge2 tonb">onboarding</span></div>
+            </div>
+            <div class="db-f"><span class="db-fn">id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dpk">PK</span></div></div>
+            <div class="db-f"><span class="db-fn">client_id</span><span class="db-ft">uuid</span><div class="db-fc"><span class="dfk">FK</span><span class="duq">UQ</span></div></div>
+            <div class="db-f"><span class="db-fn">current_step</span><span class="db-ft">integer · etapa atual 1–8</span></div>
+            <div class="db-f"><span class="db-fn">steps_completed</span><span class="db-ft">jsonb · checklist de tarefas</span></div>
+            <div class="db-f"><span class="db-fn">briefing_data</span><span class="db-ft">jsonb · respostas do briefing</span></div>
+            <div class="db-f"><span class="db-fn">pipeline_status</span><span class="db-ft">varchar · pending/running/done</span></div>
+            <div class="db-f"><span class="db-fn">go_live_at</span><span class="db-ft">timestamptz · nullable</span></div>
+            <div class="db-f"><span class="db-fn">created_at</span><span class="db-ft">timestamptz</span></div>
+            <div class="db-note">rastreia etapa do onboarding · pipeline_status reflete execução do pipeline de análise</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 </section>
@@ -929,6 +1083,703 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 </div>
 </section>
 
+<!-- ══════════ TAB 5: AGENT IA ══════════ -->
+<section id="tab-agentia" class="panel">
+<style>
+/* ─── AGENT IA TAB ─── */
+.ai-page{padding:28px;max-width:960px}
+.ai-page .page-head{margin-bottom:32px}
+
+/* section blocks */
+.ai-section{margin-bottom:40px}
+.ai-section-title{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-3);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.ai-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* arch cards */
+.arch-grid{display:grid;grid-template-columns:1fr 48px 1fr;gap:0;align-items:center;margin-bottom:20px}
+.arch-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.arch-card-head{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.arch-card-name{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500}
+.arch-card-role{font-size:10px;color:var(--text-3);font-family:'IBM Plex Mono',monospace}
+.arch-card-body{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.arch-row{display:flex;align-items:flex-start;gap:8px;font-size:11px}
+.arch-row-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);min-width:72px;padding-top:1px}
+.arch-row-val{color:var(--text-2);line-height:1.6}
+.arch-connector{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.arch-arr{font-size:16px;color:var(--border-hi)}
+.arch-lbl{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);text-align:center;line-height:1.4}
+.wr-color{color:#93c5fd}.op-color{color:#86efac}
+
+/* loop visual */
+.loop-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.loop-steps{display:flex;flex-direction:column;gap:0}
+.loop-step{display:grid;grid-template-columns:28px 1fr;gap:12px}
+.loop-spine{display:flex;flex-direction:column;align-items:center}
+.loop-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;flex-shrink:0;border:1px solid var(--border-hi);color:var(--text-2);background:var(--surface-2)}
+.loop-step.wr .loop-num{background:rgba(59,130,246,.12);border-color:#3b82f6;color:#93c5fd}
+.loop-step.op .loop-num{background:rgba(34,197,94,.08);border-color:#22c55e;color:#86efac}
+.loop-step.end .loop-num{background:rgba(168,85,247,.1);border-color:#a855f7;color:#d8b4fe}
+.loop-vline{flex:1;width:1px;background:var(--border);margin:3px 0;min-height:18px}
+.loop-body{padding:3px 0 18px}
+.loop-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.loop-desc{font-size:11px;color:var(--text-2);line-height:1.6}
+.loop-code{font-family:'IBM Plex Mono',monospace;font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:6px 10px;margin-top:6px;color:var(--text-2);white-space:pre}
+
+/* multi-tool fila */
+.fila-box{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:10px}
+.fila-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);margin-bottom:8px}
+.fila-item{display:flex;align-items:center;gap:8px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text-2);padding:4px 0;border-bottom:1px solid var(--border)}
+.fila-item:last-child{border-bottom:none}
+.fidx{width:18px;height:18px;border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text-3);flex-shrink:0}
+.fidx.done{background:rgba(34,197,94,.12);color:#86efac}
+
+/* framework prompt */
+.fw-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0}
+.fw-tab{padding:7px 14px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
+.fw-tab.active{color:#93c5fd;border-bottom-color:#3b82f6}
+.fw-tab.op-tab.active{color:#86efac;border-bottom-color:#22c55e}
+.fw-panel{display:none}.fw-panel.active{display:block}
+.fw-card{background:var(--surface);border:1px solid var(--border);border-radius:0 0 10px 10px;overflow:hidden}
+.fw-section{border-bottom:1px solid var(--border)}
+.fw-section:last-child{border-bottom:none}
+.fw-sec-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;transition:background .1s}
+.fw-sec-head:hover{background:var(--surface-2)}
+.fw-sec-name{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500}
+.fw-sec-badges{display:flex;gap:5px}
+.fbadge{font-size:9px;padding:1px 6px;border-radius:3px}
+.fb-fixed{background:rgba(99,102,241,.1);color:#a5b4fc}
+.fb-var{background:rgba(251,191,36,.08);color:#fcd34d}
+.fb-opt{background:rgba(156,163,175,.08);color:#9ca3af}
+.fb-hist{background:rgba(34,197,94,.08);color:#86efac}
+.fw-sec-body{display:none;padding:10px 14px;background:var(--surface-2);border-top:1px solid var(--border)}
+.fw-sec-body.open{display:block}
+.fw-desc{font-size:11px;color:var(--text-2);line-height:1.7;margin-bottom:8px}
+.fw-example{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;white-space:pre-wrap;line-height:1.6}
+.fw-from-hist{font-size:10px;color:#86efac;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:4px;padding:5px 9px;margin-bottom:6px;font-family:'IBM Plex Mono',monospace}
+
+/* pipeline */
+.pipeline{display:flex;flex-direction:column;gap:0}
+.pipe-stage{display:grid;grid-template-columns:36px 1fr;gap:14px}
+.pipe-dot-col{display:flex;flex-direction:column;align-items:center}
+.pipe-dot{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;flex-shrink:0}
+.pipe-line{flex:1;width:1px;background:var(--border);margin:4px 0;min-height:20px}
+.pipe-body{padding:4px 0 24px}
+.pipe-title{font-size:13px;font-weight:500;margin-bottom:4px}
+.pipe-desc{font-size:11px;color:var(--text-2);line-height:1.7;margin-bottom:8px}
+.pipe-detail{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:11px;color:var(--text-2)}
+.pipe-sub{display:flex;flex-direction:column;gap:5px}
+.pipe-sub-item{display:flex;align-items:flex-start;gap:8px;font-size:11px}
+.pipe-sub-dot{width:5px;height:5px;border-radius:50%;background:var(--border-hi);flex-shrink:0;margin-top:5px}
+.pipe-code{font-family:'IBM Plex Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;white-space:pre-wrap;color:var(--text-2);margin-top:8px}
+
+/* tiers */
+.tiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.tier-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+.tier-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.tier-num{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500}
+.tier-t1{color:#60a5fa}.tier-t2{color:#f59e0b}.tier-t3{color:#f87171}
+.tier-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3)}
+.tier-body{display:flex;flex-direction:column;gap:6px}
+.tier-row{font-size:11px;color:var(--text-2)}
+.tier-row span{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);display:block}
+
+/* limits */
+.limits-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.limit-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+.limit-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);margin-bottom:6px}
+.limit-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;color:var(--text);margin-bottom:2px}
+.limit-desc{font-size:11px;color:var(--text-2);line-height:1.6}
+.limit-warn{font-size:10px;color:#fcd34d;margin-top:4px}
+
+/* briefing */
+.brief-step{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.brief-head{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .1s}
+.brief-head:hover{background:var(--surface-2)}
+.brief-step-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);min-width:20px}
+.brief-step-title{font-size:12px;font-weight:500;flex:1}
+.brief-step-tag{font-size:9px;padding:2px 7px;border-radius:3px;font-family:'IBM Plex Mono',monospace}
+.bt-pre{background:rgba(96,165,250,.1);color:#93c5fd}
+.bt-meet{background:rgba(251,191,36,.08);color:#fcd34d}
+.bt-auto{background:rgba(34,197,94,.08);color:#86efac}
+.brief-body{display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface-2)}
+.brief-body.open{display:block}
+.brief-q{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--text-2)}
+.brief-q:last-child{border-bottom:none}
+.bqi{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3);min-width:18px}
+.brief-note{font-size:10px;color:#86efac;font-family:'IBM Plex Mono',monospace;margin-top:6px;padding:5px 8px;background:rgba(34,197,94,.05);border-radius:4px;border:1px solid rgba(34,197,94,.12)}
+</style>
+
+<div class="ai-page">
+  <div class="page-head">
+    <h2>Agent IA</h2>
+    <p>arquitetura WR + OP · framework de prompt · pipeline de histórico · briefing</p>
+  </div>
+
+  <!-- ── 1. ARQUITETURA ── -->
+  <div class="ai-section">
+    <div class="ai-section-title">01 · arquitetura dual</div>
+
+    <div class="arch-grid">
+      <!-- WR -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-card-name wr-color">Agent WR</span>
+          <span class="arch-card-role">gerente · linguagem</span>
+        </div>
+        <div class="arch-card-body">
+          <div class="arch-row"><span class="arch-row-label">função</span><span class="arch-row-val">Única voz do sistema. Conversa com o lead, decide quando acionar o OP e entrega a resposta final.</span></div>
+          <div class="arch-row"><span class="arch-row-label">acesso</span><span class="arch-row-val">Histórico da conversa + resultado retornado pelo OP. Sem acesso direto a ferramentas.</span></div>
+          <div class="arch-row"><span class="arch-row-label">output</span><span class="arch-row-val"><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">acionar_operacional: bool + mensagem_final: string</code></span></div>
+          <div class="arch-row"><span class="arch-row-label">regra core</span><span class="arch-row-val">Nunca inventa dados reais (estoque, preço, ficha técnica). Delega ao OP e aguarda.</span></div>
+        </div>
+      </div>
+
+      <!-- conector -->
+      <div class="arch-connector">
+        <div class="arch-lbl">instrução<br>→</div>
+        <div style="height:12px;width:1px;background:var(--border-hi)"></div>
+        <div class="arch-lbl">resultado<br>←</div>
+      </div>
+
+      <!-- OP -->
+      <div class="arch-card">
+        <div class="arch-card-head">
+          <span class="arch-card-name op-color">Agent OP</span>
+          <span class="arch-card-role">técnico · execução</span>
+        </div>
+        <div class="arch-card-body">
+          <div class="arch-row"><span class="arch-row-label">função</span><span class="arch-row-val">Lê a ordem do WR, executa a ferramenta correta e devolve o resultado. Nunca fala com o lead.</span></div>
+          <div class="arch-row"><span class="arch-row-label">acesso</span><span class="arch-row-val">Ferramentas configuradas por cliente: catálogo, RAG, CRM, agenda, etc.</span></div>
+          <div class="arch-row"><span class="arch-row-label">output</span><span class="arch-row-val"><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">ferramenta: string + parametros: string</code></span></div>
+          <div class="arch-row"><span class="arch-row-label">regra core</span><span class="arch-row-val">Uma ação por iteração. Nunca encadeia ferramentas. Volta ao WR com resultado antes de qualquer próxima ação.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loop multi-tool -->
+    <div class="loop-box">
+      <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);margin-bottom:14px">loop agêntico · protocolo de fila quando WR envia múltiplas instruções</div>
+      <div class="loop-steps">
+        <div class="loop-step wr">
+          <div class="loop-spine"><div class="loop-num">WR</div><div class="loop-vline"></div></div>
+          <div class="loop-body">
+            <div class="loop-title" style="color:#93c5fd">WR avalia e monta fila de instruções</div>
+            <div class="loop-desc">Quando o lead exige múltiplas ações, o WR emite instruções numeradas e ordenadas por prioridade.</div>
+            <div class="loop-code">[1] CONSULTAR_RAG | query: produto X características
+[2] REGISTRAR_CRM | nome: João | interesse: produto X</div>
+          </div>
+        </div>
+        <div class="loop-step op">
+          <div class="loop-spine"><div class="loop-num">OP</div><div class="loop-vline"></div></div>
+          <div class="loop-body">
+            <div class="loop-title" style="color:#86efac">OP executa [1] e retorna ao WR</div>
+            <div class="loop-desc">Executa apenas a primeira instrução da fila. Nunca encadeia. Devolve resultado ao WR.</div>
+            <div class="loop-code">{ "ferramenta": "consultar_rag", "parametros": "produto X características" }</div>
+          </div>
+        </div>
+        <div class="loop-step wr">
+          <div class="loop-spine"><div class="loop-num">WR</div><div class="loop-vline"></div></div>
+          <div class="loop-body">
+            <div class="loop-title" style="color:#93c5fd">WR recebe resultado e emite [2]</div>
+            <div class="loop-desc">Processa o resultado do OP e — se ainda houver instrução na fila — emite a próxima.</div>
+          </div>
+        </div>
+        <div class="loop-step op">
+          <div class="loop-spine"><div class="loop-num">OP</div><div class="loop-vline"></div></div>
+          <div class="loop-body">
+            <div class="loop-title" style="color:#86efac">OP executa [2] e retorna ao WR</div>
+            <div class="loop-desc">Executa a segunda instrução e devolve resultado via <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">ferramenta: "agent_wr"</code>.</div>
+          </div>
+        </div>
+        <div class="loop-step end">
+          <div class="loop-spine"><div class="loop-num">✓</div></div>
+          <div class="loop-body">
+            <div class="loop-title" style="color:#d8b4fe">WR entrega resposta final ao lead</div>
+            <div class="loop-desc">Fila zerada. WR sintetiza todos os resultados e envia mensagem humanizada. Máx. 10 iterações totais.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. LIMITES TÉCNICOS ── -->
+  <div class="ai-section">
+    <div class="ai-section-title">02 · limites técnicos</div>
+    <div class="limits-grid">
+      <div class="limit-card">
+        <div class="limit-label">tamanho WR · recomendado</div>
+        <div class="limit-val">600–800</div>
+        <div class="limit-desc">tokens de conteúdo real. <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">saida_obrigatoria</code> removida do prompt — JSON garantido via <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">response_schema</code> no body da requisição.</div>
+        <div class="limit-warn">⚠ checklist nunca cortar — compensa o thinking OFF</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">tamanho OP · recomendado</div>
+        <div class="limit-val">250–400</div>
+        <div class="limit-desc">tokens de conteúdo real. <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">saida_obrigatoria</code> removida — schema do OP também vai no <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">response_schema</code>. OP deve ser enxuto — complexidade vai no WR.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">modelo · Gemini 3 Flash</div>
+        <div class="limit-val">200K</div>
+        <div class="limit-desc">tokens de contexto disponível. Limite de prompt não é o problema — o budget de 600–800 tokens é sobre qualidade de seguimento de instrução, não sobre estourar contexto.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">thinking mode</div>
+        <div class="limit-val">OFF</div>
+        <div class="limit-desc">Desativado por padrão em todos os clientes — menor custo e latência. Ativar apenas quando o projeto específico exigir raciocínio mais profundo.</div>
+        <div class="limit-warn">⚠ thinking OFF = checklist no prompt é obrigatório</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">histórico enviado ao WR</div>
+        <div class="limit-val">10 msgs</div>
+        <div class="limit-desc">Últimas 10 mensagens por padrão. Aumentar para 20 em contextos de venda longa sem impacto crítico de custo.</div>
+        <div class="limit-warn">⚠ histórico completo aumenta custo e latência</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">iterações máximas · loop</div>
+        <div class="limit-val">10 iter.</div>
+        <div class="limit-desc">Hard limit no n8n. Acima de 10 iterações o loop é interrompido e o handoff humano é acionado automaticamente.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">response_schema · JSON</div>
+        <div class="limit-val">body</div>
+        <div class="limit-desc">Schema separado por agente — WR e OP têm schemas distintos no body da requisição. OP com schema mais estrito evita <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">parametros</code> vazios, o erro silencioso mais comum.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-label">ferramentas por cliente · OP</div>
+        <div class="limit-val">1–4</div>
+        <div class="limit-desc">Acima de 4 ferramentas o OP começa a confundir qual acionar. Ferramentas definidas no briefing manual — dependem das chaves de integração do cliente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. FRAMEWORK DO PROMPT ── -->
+  <div class="ai-section">
+    <div class="ai-section-title">03 · framework do prompt</div>
+
+    <div class="fw-tabs">
+      <button class="fw-tab active" onclick="switchFw('wr',this)">Agent WR</button>
+      <button class="fw-tab op-tab" onclick="switchFw('op',this)">Agent OP</button>
+    </div>
+
+    <!-- WR FRAMEWORK -->
+    <div id="fw-wr" class="fw-panel active">
+      <div class="fw-card">
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;identidade&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-var">variável</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-from-hist">✦ extraído do histórico: nome real usado pelo vendedor, empresa, tom predominante</div>
+            <div class="fw-desc">Nome do agente, empresa, papel e tom de voz. Define a persona completa. Tudo vem do briefing + histórico.</div>
+            <div class="fw-example">&lt;nome&gt;Rafael&lt;/nome&gt;
+&lt;empresa&gt;CompreCar&lt;/empresa&gt;
+&lt;papel&gt;SDR consultivo&lt;/papel&gt;
+&lt;tom&gt;Profissional, humano e objetivo. Linguagem simples e direta.&lt;/tom&gt;</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;missao&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-var">variável</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">O que o SDR faz, o que ele jamais faz (limites comerciais) e a metodologia de qualificação usada (BANT, SPIN, etc).</div>
+            <div class="fw-example">Conversar de forma humanizada, qualificar leads com BANT flexível
+e acionar o OP quando precisar de dados externos.
+NUNCA fechar venda, NUNCA negociar condição final.</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;objetivos_prioritarios&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-fixed">fixo</span><span class="fbadge fb-var">variável</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">Lista ordenada. Os 2 primeiros são fixos em todos os clientes. Os demais variam por objetivo comercial.</div>
+            <div class="fw-example">1) Responder a dúvida atual do lead com clareza.      ← FIXO
+2) Conduzir conversa como vendedor real.              ← FIXO
+3) Acionar OP para consultar catálogo.                ← varia
+4) Qualificar com BANT no ritmo da conversa.          ← varia
+5) Acionar OP para registrar lead qualificado.        ← varia</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;estilo_de_resposta&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-hist">do histórico</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-from-hist">✦ extraído do histórico: tamanho médio das respostas que converteram, uso de emoji, nível de gíria, padrão de pergunta</div>
+            <div class="fw-desc">Regras de formatação e estilo baseadas nos padrões reais das conversas que funcionaram.</div>
+            <div class="fw-example">- Respostas curtas por padrão (histórico: média 2,3 linhas nas conversões)
+- Nível de gíria: baixo
+- Emoji: raro, nunca repetir o mesmo
+- 1 pergunta por mensagem</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;fluxo_conversa_natural&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-hist">do histórico</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-from-hist">✦ extraído do histórico Tier 2+3: padrão de abertura, quando qualificar, sequência que levou à conversão</div>
+            <div class="fw-desc">Script não-linear baseado nos padrões reais das conversas que fecharam. Não é um roteiro rígido — é a estrutura que funcionou.</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;quando_acionar_operacional&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-var">variável</span><span class="fbadge fb-hist">do histórico</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-from-hist">✦ do histórico: quais perguntas do lead sempre exigiram consulta externa. Quais o vendedor respondia de memória.</div>
+            <div class="fw-desc">Seção mais crítica. Define exatamente quando e como o WR aciona o OP, com o formato da instrução por tipo de ação. Muda completamente por cliente.</div>
+            <div class="fw-example">&lt;consultar_catalogo&gt;
+  Acione quando: disponibilidade, preço, versão, comparação.
+  Formato: CONSULTAR_CATALOGO | objetivo: [...] | filtros: [...]
+&lt;/consultar_catalogo&gt;
+
+&lt;registrar_crm&gt;
+  Acione quando: BANT suficiente + interesse explícito.
+  Formato: REGISTRAR_CRM | nome: [...] | interesse: [...]
+&lt;/registrar_crm&gt;</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;objecoes&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-hist">do histórico</span><span class="fbadge fb-opt">opcional</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-from-hist">✦ extraído do histórico: top objeções reais + como o vendedor contornou nas conversas com engajamento genuíno</div>
+            <div class="fw-desc">Seção opcional mas poderosa. Alimentada 100% pelo histórico — não por suposição do cliente no briefing.</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;checklist_antes_de_responder&gt; + &lt;restricoes&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-fixed">fixo</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">Sempre no final do prompt. Nunca cortar. Com thinking OFF essas seções substituem o raciocínio interno do modelo — são o único mecanismo de auto-verificação antes de responder. O schema JSON vai no <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">response_schema</code> do body da requisição, não aqui.</div>
+            <div class="fw-example">Budget total estimado do WR:
+identidade          ~80 tokens
+missao              ~60 tokens
+objetivos           ~80 tokens
+estilo_resposta     ~60 tokens   ← do histórico
+fluxo_conversa      ~120 tokens  ← do histórico
+quando_acionar_op   ~150 tokens  ← do histórico + briefing
+objecoes            ~100 tokens  ← do histórico (opcional)
+checklist           ~80 tokens   ← NUNCA cortar
+restricoes          ~50 tokens
+─────────────────────────────────
+total               ~780 tokens</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- OP FRAMEWORK -->
+    <div id="fw-op" class="fw-panel">
+      <div class="fw-card">
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;identidade&gt; + &lt;missao&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-var">variável</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">Apenas o nome da empresa muda. O papel e a missão do OP são sempre os mesmos: executar, não conversar.</div>
+            <div class="fw-example">Você é o operacional da [EMPRESA].
+Não conversa com o lead.
+Executa ferramentas e devolve resultado ao [NOME_AGENT_WR].</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;ferramentas_disponiveis&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-var">variável</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">A seção mais variável do OP. Definida inteiramente no briefing manual — depende das chaves de integração que o cliente fornece. Histórico não determina ferramentas, apenas confirma quais dados externos o vendedor precisou consultar.</div>
+            <div class="fw-example">Ferramentas possíveis por tipo de cliente:
+- consultar_catalogo   → e-commerce, automóveis, imóveis
+- consultar_rag        → base de conhecimento, FAQ, docs
+- registrar_lead       → CRM interno, planilha
+- registrar_crm        → HubSpot, Pipedrive, RD Station
+- consultar_agenda     → agendamento de reunião
+- buscar_proposta      → geração de proposta PDF</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;protocolo_de_decisao&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-fixed">fixo</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">Sempre igual em todos os clientes. Define a lógica de execução e o retorno ao WR. Ações independentes podem ser paralelas — ações dependentes executam em sequência.</div>
+            <div class="fw-example">1) Leia ORDEM DO ATENDENTE e MEMÓRIA TÉCNICA.
+2) Identifique o tipo de relação entre as ações:
+   → independentes (resultado de uma não afeta a outra)
+     ex: salvar CRM + buscar DB → executa em paralelo
+   → dependentes (uma precisa do resultado da outra)
+     ex: buscar catálogo → registrar interesse → sequência
+3) Se falta execução → retorne ferramenta + parâmetros.
+4) Se já tem resultado suficiente → retorne agent_wr.</div>
+          </div>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-sec-head" onclick="toggleFw(this)">
+            <span class="fw-sec-name">&lt;restricoes&gt;</span>
+            <div class="fw-sec-badges"><span class="fbadge fb-fixed">fixo</span></div>
+          </div>
+          <div class="fw-sec-body">
+            <div class="fw-desc">Sempre ao final. Schema JSON vai no <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">response_schema</code> do body — mais estrito que o do WR para evitar <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">parametros</code> vazios.</div>
+            <div class="fw-example">NUNCA invente dados.
+NUNCA altere retorno de ferramenta.
+NUNCA responda diretamente ao lead.
+
+Budget total estimado do OP:
+identidade + missao     ~60 tokens
+ferramentas             ~120 tokens  ← varia por cliente
+protocolo_decisao       ~100 tokens
+restricoes              ~40 tokens
+────────────────────────────────
+total                   ~320 tokens</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. PIPELINE DE ANÁLISE DO HISTÓRICO ── -->
+  <div class="ai-section">
+    <div class="ai-section-title">04 · pipeline de análise do histórico</div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:20px;line-height:1.7">Dois estágios bem separados. LLM 1 extrai — LLM 2 constrói. A qualidade do prompt final depende 100% do schema que a LLM 1 é instruída a extrair.</div>
+
+    <div class="pipeline">
+
+      <div class="pipe-stage">
+        <div class="pipe-dot-col">
+          <div class="pipe-dot" style="background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid #3b82f6">DB</div>
+          <div class="pipe-line"></div>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-title">Exportar e filtrar histórico</div>
+          <div class="pipe-desc">Query no <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">messages</code> agrupando por <code style="font-family:'IBM Plex Mono',monospace;font-size:10px">contact_id</code>. Deletar conversas com menos de 5 interações — são ruído, não padrão.</div>
+          <div class="pipe-code">SELECT contact_id, role, content, created_at
+FROM messages WHERE client_id = '[id]'
+GROUP BY contact_id
+HAVING COUNT(*) >= 5
+ORDER BY contact_id, created_at</div>
+        </div>
+      </div>
+
+      <div class="pipe-stage">
+        <div class="pipe-dot-col">
+          <div class="pipe-dot" style="background:rgba(251,191,36,.08);color:#fcd34d;border:1px solid #f59e0b">÷</div>
+          <div class="pipe-line"></div>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-title">Dividir em batches de 20 conversas</div>
+          <div class="pipe-desc">Cada batch contém 20 conversas completas. Esse tamanho equilibra qualidade de extração e custo de tokens por requisição.</div>
+          <div class="pipe-detail">
+            <div class="pipe-sub">
+              <div class="pipe-sub-item"><div class="pipe-sub-dot"></div><span>Batches menores → mais precisão, mais chamadas de API</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot"></div><span>Batches maiores → mais ruído por batch, menos controle</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot"></div><span>20 conversas é o ponto de equilíbrio validado</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipe-stage">
+        <div class="pipe-dot-col">
+          <div class="pipe-dot" style="background:rgba(34,197,94,.08);color:#86efac;border:1px solid #22c55e">L1</div>
+          <div class="pipe-line"></div>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-title">LLM 1 · extrai schema por batch</div>
+          <div class="pipe-desc">Recebe 20 conversas, ignora spam e interações sem engajamento real, extrai os 4 blocos do schema. Repete até processar todos os batches. Salva cada resultado no banco de resumos.</div>
+          <div class="pipe-code">{
+  "atendimento": {
+    "perguntas_mais_frequentes": [],
+    "como_o_vendedor_respondeu": [],
+    "tom_usado": ""
+  },
+  "qualificacao": {
+    "como_bant_surgiu_naturalmente": [],
+    "momento_da_conversa": "",
+    "o_que_destravou_o_lead": []
+  },
+  "conversao": {
+    "sinal_de_interesse_real": [],
+    "o_que_o_vendedor_fez_quando_percebeu": [],
+    "como_passou_pro_vendedor": ""
+  },
+  "linguagem": {
+    "vocabulario_do_lead": [],
+    "vocabulario_do_vendedor": [],
+    "objecoes_e_contornos": []
+  }
+}</div>
+          <div style="margin-top:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px 14px">
+            <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-3);margin-bottom:8px">mapeamento schema → seções do WR</div>
+            <div class="pipe-sub">
+              <div class="pipe-sub-item"><div class="pipe-sub-dot" style="background:#93c5fd"></div><span><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">atendimento</code> → fluxo_conversa_natural</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot" style="background:#fcd34d"></div><span><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">qualificacao</code> → bant</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot" style="background:#f87171"></div><span><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">conversao</code> → quando_acionar_operacional</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot" style="background:#86efac"></div><span><code style="font-family:'IBM Plex Mono',monospace;font-size:10px">linguagem</code> → estilo_resposta + objecoes</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipe-stage">
+        <div class="pipe-dot-col">
+          <div class="pipe-dot" style="background:rgba(168,85,247,.1);color:#d8b4fe;border:1px solid #a855f7">L2</div>
+          <div class="pipe-line"></div>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-title">LLM 2 · lê todos os resumos e monta o prompt</div>
+          <div class="pipe-desc">Lê o banco de resumos acumulados pela LLM 1, consolida padrões repetidos entre batches e preenche as seções do WR marcadas como "do histórico". Entrega o rascunho estruturado para validação no briefing.</div>
+          <div class="pipe-detail">
+            <div class="pipe-sub">
+              <div class="pipe-sub-item"><div class="pipe-sub-dot"></div><span>Seções preenchidas automaticamente: estilo_resposta, fluxo_conversa, bant, objecoes, quando_acionar_op (parcial)</span></div>
+              <div class="pipe-sub-item"><div class="pipe-sub-dot"></div><span>Seções que ficam para o briefing: identidade, missao, ferramentas do OP, limites comerciais</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pipe-stage">
+        <div class="pipe-dot-col">
+          <div class="pipe-dot" style="background:rgba(34,197,94,.12);color:#4ade80;border:1px solid #22c55e">✓</div>
+        </div>
+        <div class="pipe-body">
+          <div class="pipe-title">Rascunho do WR pronto para o briefing</div>
+          <div class="pipe-desc">O briefing com o cliente vira uma sessão de 30 min de validação — não uma entrevista de suposições. As seções que vêm do histórico chegam pré-preenchidas com dados reais do negócio dele.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 5. BRIEFING ESTRUTURADO ── -->
+  <div class="ai-section">
+    <div class="ai-section-title">05 · briefing estruturado · com histórico</div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:16px;line-height:1.7">As seções marcadas com <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#86efac">✦ histórico</span> chegam pré-preenchidas pelo pipeline. O briefing valida, corrige e complementa — não começa do zero.</div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">01</span>
+        <span class="brief-step-title">Negócio e produto</span>
+        <span class="brief-step-tag bt-meet">reunião</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Mono',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-q"><span class="bqi">1</span>O que você vende? Produto, serviço, ticket médio.</div>
+        <div class="brief-q"><span class="bqi">2</span>Quais são os 3 principais diferenciais que o vendedor usa hoje?</div>
+        <div class="brief-q"><span class="bqi">3</span>Existe algum produto/serviço que o SDR NUNCA deve citar ou vender diretamente?</div>
+        <div class="brief-q"><span class="bqi">4</span>Qual é o CTA final que define uma boa conversa? (reunião, proposta, link, etc.)</div>
+      </div>
+    </div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">02</span>
+        <span class="brief-step-title">Persona e tom</span>
+        <span class="brief-step-tag bt-pre">✦ histórico</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Mono',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-note">✦ pipeline já extrai: tom predominante, nível de formalidade, vocabulário real, uso de emoji</div>
+        <div class="brief-q"><span class="bqi">1</span><span style="color:#86efac">[validar]</span> O tom identificado no histórico representa como vocês querem soar?</div>
+        <div class="brief-q"><span class="bqi">2</span>Existe alguma palavra ou expressão que o SDR deve evitar absolutamente?</div>
+        <div class="brief-q"><span class="bqi">3</span>Como o vendedor se apresenta? ("Oi, aqui é o [nome]" / "Olá, [nome] da [empresa]"...)</div>
+      </div>
+    </div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">03</span>
+        <span class="brief-step-title">ICP e qualificação</span>
+        <span class="brief-step-tag bt-pre">✦ histórico</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Ico',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-note">✦ pipeline já extrai: quando BANT apareceu organicamente, quais critérios o vendedor usou, perfil das conversas que fecharam</div>
+        <div class="brief-q"><span class="bqi">1</span><span style="color:#86efac">[validar]</span> O perfil de lead que converte no histórico bate com o ICP ideal de vocês?</div>
+        <div class="brief-q"><span class="bqi">2</span>Qual critério de desqualificação é absoluto? (ex: "sem CNPJ", "fora do estado")</div>
+        <div class="brief-q"><span class="bqi">3</span>Budget mínimo e prazo ideal para considerar um lead quente.</div>
+        <div class="brief-q"><span class="bqi">4</span>Quem costuma decidir a compra? Tem influenciador além do decisor?</div>
+      </div>
+    </div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">04</span>
+        <span class="brief-step-title">Objeções e contornos</span>
+        <span class="brief-step-tag bt-pre">✦ histórico</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Mono',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-note">✦ pipeline já extrai: top 5 objeções + como o vendedor real respondeu nas conversas que fecharam</div>
+        <div class="brief-q"><span class="bqi">1</span><span style="color:#86efac">[validar]</span> As objeções mapeadas no histórico são as mais comuns no dia a dia?</div>
+        <div class="brief-q"><span class="bqi">2</span>Existe alguma objeção nova que surgiu recentemente e não está no histórico?</div>
+        <div class="brief-q"><span class="bqi">3</span>Tem algum contorno que o SDR NUNCA deve usar? (ex: prometer desconto)</div>
+      </div>
+    </div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">05</span>
+        <span class="brief-step-title">Ferramentas e integrações</span>
+        <span class="brief-step-tag bt-meet">reunião</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Mono',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-q"><span class="bqi">1</span>Quais dados externos o SDR precisa consultar? (catálogo, estoque, agenda, FAQ, RAG)</div>
+        <div class="brief-q"><span class="bqi">2</span>Qual CRM ou sistema recebe os leads qualificados? Tem API disponível?</div>
+        <div class="brief-q"><span class="bqi">3</span>Existe alguma ação que o OP precisa fazer além de consultar e registrar? (enviar PDF, criar tarefa, etc.)</div>
+        <div class="brief-q"><span class="bqi">4</span>Quais palavras ou situações devem acionar handoff humano imediato?</div>
+      </div>
+    </div>
+
+    <div class="brief-step">
+      <div class="brief-head" onclick="toggleBrief(this)">
+        <span class="brief-step-num">06</span>
+        <span class="brief-step-title">Validação final do rascunho</span>
+        <span class="brief-step-tag bt-auto">automático</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto;font-family:'IBM Plex Mono',monospace">↓</span>
+      </div>
+      <div class="brief-body">
+        <div class="brief-note">✦ com base nas respostas do briefing + output do pipeline, o rascunho WR e OP são gerados automaticamente e apresentados ao cliente para aprovação</div>
+        <div class="brief-q"><span class="bqi">1</span>Simular 3 conversas ao vivo: lead frio, lead com objeção, lead quente.</div>
+        <div class="brief-q"><span class="bqi">2</span>Coletar feedback do cliente sobre tom, precisão e CTA.</div>
+        <div class="brief-q"><span class="bqi">3</span>Máx. 2 rodadas de ajuste antes do deploy.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
 <script>
 function switchTab(id, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -962,6 +1813,22 @@ function toggleTask(item) {
   item.classList.toggle('done');
 }
 
+function switchFw(id, btn) {
+  document.querySelectorAll('.fw-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.fw-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('fw-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleFw(head) {
+  const body = head.nextElementSibling;
+  body.classList.toggle('open');
+}
+function toggleBrief(head) {
+  const body = head.nextElementSibling;
+  body.classList.toggle('open');
+  const arr = head.querySelector('span:last-child');
+  if(arr) arr.textContent = body.classList.contains('open') ? '↑' : '↓';
+}
 function updateProgress() {
   const total = document.querySelectorAll('.ob-step').length;
   const done = document.querySelectorAll('.ob-step.done').length;
